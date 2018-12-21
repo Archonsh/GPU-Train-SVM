@@ -1,5 +1,5 @@
+# example: 'python3 format_convert.py a1a.svm a2a.svm'
 import sys
-
 
 def format_convert(file_name):
     ndim = 0
@@ -29,8 +29,6 @@ def format_convert(file_name):
 
 
 if __name__ == '__main__':
-
-    #print('Invalid Argument! Inputthe data file ')
     print(sys.argv)
     for file_name in sys.argv[1:]:
         format_convert(file_name)

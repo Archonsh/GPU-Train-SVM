@@ -1,328 +1,76 @@
 GPU-Train-SVM is a modification of GPUSVM, version 0.2.
 GPUSVM, version 0.2 is an implementation of Support Vector
-Machine training and classification using Nvidia Graphics 
-Processors. However, a limitation of GPUSVM, version 0.2 is
-that it can only train one SVM per time, GPU-Train-SVM is
-a modification of the origin GPUSVM, such that GPU-Train-SVM
-can trian multiple SVMs concurrently.
+Machine training and classification using Nvidia Graphics
+Processors.
+
+GPU-Train-SVM is previously modified, such that GPU-Train-SVM
+can train multiple SVMs concurrently.
+
+IMPROVEMENT
+    * The CUDA code has been optimized for better parallel computation
+    * The memory communication between host and device is optimized
+    * Code has been commented
+    * Bug fix
 
 NEW FEATURES
 
-    * train for multiple SVMs with RBF kernel concurrently
-
-
-Functionality / User interface
-
-    /**
-	 * Performs Multi-SVM training
-	 * @param numSVM the number of SVMs
-	 * @param dataArray the training data of all SVMs
-	 * @param nPointsArray records the number of training points for each SVM
-	 * @param nDimensionArray records the number of dimensions for each SVM
-	 * @param labelsArray records the lables of all training points
-	 * @param p_alphaArary pointer to an array of float buffer that will be allocated by performMultiTraining and contain the unsigned weights of the classifier after training all SVMs
-	 * @param kpArray specifies the training paramters for each SVM
-	 * @param costArray the training cost parameter C for each SVM
-	 * @param heuristicMethodArray specifies selection heuristic method for each SVM.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param epsilonArray this parameter controls which training points are counted as support vectors for each SVM.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 * @param toleranceArray this parameter controls how close to the optimal solution the optimization process must go for each SVM.  Default is 1e-3f.
-	 * @param transposedDataArray the transposed dataArray 
-	 * @param gpuId specifies which gpu to use for training
-	 */
-	void performMultiTraining(int numSVM, float** dataArray, int* nPointsArray, int* nDimensionArray, float** labelsArray, float*** p_alphaArray, Kernel_params** kpArray, float* costArray, SelectionHeuristic* heuristicMethodArray, float* epsilonArray, float* toleranceArray, float** transposedDataArray, int gpuId = -1);
-
-	/**
-	 * Uses multiple GPUs to train many SVMs concurrently from input files (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVM for training
-	 * @param trainingFile the names of the input training files
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 * @param kernelType the kernel type for trainging (eg. LINEAR, POLYNOMIAL, GAUSSIAN, SIGMOID)
-	 * @param heuristicMethod variable selection heuristic method.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param cost the training cost parameter C
-	 * @param tolerance this parameter controls how close to the optimal solution the optimization process must go.  Default is 1e-3f.
-	 * @param epsilon this parameter controls which training points are counted as support vectors.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 */
-	void svmTrainFromFile(int numSVM, char** trainingFile, float ratio = 0.5, int kernelType = GAUSSIAN, SelectionHeuristic heuristicMethod = ADAPTIVE, float cost = 1.0f, float tolerance = 1e-3f, float epsilon = 1e-5f);
-
-	/**
-	 * Uses multiple GPUs to predict many SVMs concurrently from input files (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVM for training
-	 * @param trainingFile the names of the input training files
-	 * @param testingFile the names of testing files
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 * @param kernelType the kernel type for trainging (eg. LINEAR, POLYNOMIAL, GAUSSIAN, SIGMOID)
-	 * @param heuristicMethod variable selection heuristic method.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param cost the training cost parameter C
-	 * @param tolerance this parameter controls how close to the optimal solution the optimization process must go.  Default is 1e-3f.
-	 * @param epsilon this parameter controls which training points are counted as support vectors.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 */
-	void svmPredictFromFile(int numSVM, char** trainingFile, char** testingFile, float ratio = 0.5, int kernelType = GAUSSIAN, SelectionHeuristic heuristicMethod = ADAPTIVE, float cost = 1.0f, float tolerance = 1e-3f, float epsilon = 1e-5f);
-
-	/**
-	 * Uses multiple GPUs to cross validation many SVMs concurrently from input files (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVM for training
-	 * @param trainingFile the names of the input training files
-	 * @param folder specifies the folder for cross validation
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 * @param kernelType the kernel type for trainging (eg. LINEAR, POLYNOMIAL, GAUSSIAN, SIGMOID)
-	 * @param heuristicMethod variable selection heuristic method.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param cost the training cost parameter C
-	 * @param tolerance this parameter controls how close to the optimal solution the optimization process must go.  Default is 1e-3f.
-	 * @param epsilon this parameter controls which training points are counted as support vectors.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 */
-	void svmCrossValidationFromFile(int numSVM, char** trainingFile, int folder, float ratio = 0.5, int kernelType = GAUSSIAN, SelectionHeuristic heuristicMethod = ADAPTIVE, float cost = 1.0f, float tolerance = 1e-3f, float epsilon = 1e-5f);
-
-	/**
-	 * Uses multiple GPUs to train many subset SVMs concurrently from input files (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVM for training
-	 * @param dataFile the file name that contains training point
-	 * @param subsetFile the names of the subset files
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 * @param kernelType the kernel type for trainging (eg. LINEAR, POLYNOMIAL, GAUSSIAN, SIGMOID)
-	 * @param heuristicMethod variable selection heuristic method.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param cost the training cost parameter C
-	 * @param tolerance this parameter controls how close to the optimal solution the optimization process must go.  Default is 1e-3f.
-	 * @param epsilon this parameter controls which training points are counted as support vectors.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 */
-	void svmSubsetTrainFromFile(int numSVM, char* dataFile, char** subsetFile, float ratio = 0.5, int kernelType = GAUSSIAN, SelectionHeuristic heuristicMethod = ADAPTIVE, float cost = 1.0f, float tolerance = 1e-3f, float epsilon = 1e-5f);
-
-	/**
-	 * Uses multiple GPUs to predict many subset SVMs concurrently from input files (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVM for training
-	 * @param dataFile the file name that contains training point
-	 * @param subsetFile the names of the subset files
-	 * @param testingFile the names of testing files
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 * @param kernelType the kernel type for trainging (eg. LINEAR, POLYNOMIAL, GAUSSIAN, SIGMOID)
-	 * @param heuristicMethod variable selection heuristic method.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param cost the training cost parameter C
-	 * @param tolerance this parameter controls how close to the optimal solution the optimization process must go.  Default is 1e-3f.
-	 * @param epsilon this parameter controls which training points are counted as support vectors.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 */
-	void svmSubsetPredictFromFile(int numSVM, char* dataFile, char** subsetFile, char** testingFile, float ratio = 0.5, int kernelType = GAUSSIAN, SelectionHeuristic heuristicMethod = ADAPTIVE, float cost = 1.0f, float tolerance = 1e-3f, float epsilon = 1e-5f);
-
-	/**
-	 * Uses multiple GPUs to train many SVMs concurrently (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVMs
-	 * @param dataArray the training data of all SVMs
-	 * @param nPointsArray records the number of training points for each SVM
-	 * @param nDimensionArray records the number of dimensions for each SVM
-	 * @param labelsArray records the lables of all training points
-	 * @param kpArray specifies the training paramters for each SVM
-	 * @param costArray the training cost parameter C for each SVM
-	 * @param heuristicMethodArray specifies selection heuristic method for each SVM.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param epsilonArray this parameter controls which training points are counted as support vectors for each SVM.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 * @param toleranceArray this parameter controls how close to the optimal solution the optimization process must go for each SVM.  Default is 1e-3f.
-	 * @param transposedDataArray the transposed dataArray
-	 * @param modelFilename specifies the output file name for training
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 */
-	void svmTrain(int numSVM, float** dataArray, int* nPointsArray, int* nDimensionArray, float** labelsArray, Kernel_params** kpArray, float* costArray, SelectionHeuristic* heuristicMethodArray, float* epsilonArray, float* toleranceArray, float** transposedDataArray, char** modelFilename = NULL, float ratio = 0.5);
-
-	/**
-	 * Uses multiple GPUs to predict many SVMs concurrently (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVMs
-	 * @param dataArray the training data of all SVMs
-	 * @param nPointsArray records the number of training points for each SVM
-	 * @param nDimensionArray records the number of dimensions for each SVM
-	 * @param labelsArray records the lables of all training points
-	 * @param kpArray specifies the training paramters for each SVM
-	 * @param costArray the training cost parameter C for each SVM
-	 * @param heuristicMethodArray specifies selection heuristic method for each SVM.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param epsilonArray this parameter controls which training points are counted as support vectors for each SVM.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 * @param toleranceArray this parameter controls how close to the optimal solution the optimization process must go for each SVM.  Default is 1e-3f.
-	 * @param transposedDataArray the transposed dataArray
-	 * @param testDataArray the testing data of all SVMs
-	 * @param testNPointsArray records the number of testing points for each SVM
-	 * @param testLabelsArray records the labels of all testing point
-	 * @param predictFilename specifies the output file name for prediction
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 */
-	void svmPredict(int numSVM, float** dataArray, int* nPointsArray, int* nDimensionArray, float** labelsArray, Kernel_params** kpArray, float* costArray, SelectionHeuristic* heuristicMethodArray, float* epsilonArray, float* toleranceArray, float** transposedDataArray, float** testDataArray, int* testNPointsArray, float** testLabelsArray, char** predictFilename = NULL, float ratio = 0.5);
-
-	/**
-	 * Uses multiple GPUs to cross validation many SVMs concurrently (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVMs
-	 * @param nPointsArray records the number of training points for each SVM
-	 * @param nDimensionArray records the number of dimensions for each SVM
-	 * @param labelsArray records the lables of all training points
-	 * @param kpArray specifies the training paramters for each SVM
-	 * @param costArray the training cost parameter C for each SVM
-	 * @param heuristicMethodArray specifies selection heuristic method for each SVM.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param epsilonArray this parameter controls which training points are counted as support vectors for each SVM.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 * @param toleranceArray this parameter controls how close to the optimal solution the optimization process must go for each SVM.  Default is 1e-3f.
-	 * @param transposedDataArray the transposed dataArray
-	 * @param folder specifies the folder for cross validation
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 */
-	void svmCrossValidation(int numSVM, int* nPointsArray, int* nDimensionArray, float** labelsArray, Kernel_params** kpArray, float* costArray, SelectionHeuristic* heuristicMethodArray, float* epsilonArray, float* toleranceArray, float** transposedDataArray, int folder = 5, float ratio = 0.5);
-
-	/**
-	 * Uses multiple GPUs to train many subset SVMs concurrently (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVMs
-	 * @param nPointsArray records the number of training points for each SVM
-	 * @param nDimensionArray records the number of dimensions for each SVM
-	 * @param labelsArray records the lables of all training points
-	 * @param kpArray specifies the training paramters for each SVM
-	 * @param costArray the training cost parameter C for each SVM
-	 * @param heuristicMethodArray specifies selection heuristic method for each SVM.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param epsilonArray this parameter controls which training points are counted as support vectors for each SVM.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 * @param toleranceArray this parameter controls how close to the optimal solution the optimization process must go for each SVM.  Default is 1e-3f.
-	 * @param transposedDataArray the transposed data array
-	 * @param subsetIdx records the subset indexes for training or prediction (used when functionality is 3 or 4)
-	 * @param modelFilename specifies the output file name for training
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 */
-	void svmSubsetTrain(int numSVM, int* nPointsArray, int* nDimensionArray, float** labelsArray, Kernel_params** kpArray, float* costArray, SelectionHeuristic* heuristicMethodArray, float* epsilonArray, float* toleranceArray, float** transposedDataArray, int** subsetIdx, char** modelFilename = NULL, float ratio = 0.5);
-
-	/**
-	 * Uses multiple GPUs to predict many subset SVMs concurrently (Notice: this function uses the default values for each parameter of different kernels)
-	 * @param numSVM the number of SVMs
-	 * @param nPointsArray records the number of training points for each SVM
-	 * @param nDimensionArray records the number of dimensions for each SVM
-	 * @param labelsArray records the lables of all training points
-	 * @param kpArray specifies the training paramters for each SVM
-	 * @param costArray the training cost parameter C for each SVM
-	 * @param heuristicMethodArray specifies selection heuristic method for each SVM.  Choices are FIRSTORDER, SECONDORDER, RANDOM and ADAPTIVE.  ADAPTIVE is the default
-	 * @param epsilonArray this parameter controls which training points are counted as support vectors for each SVM.  Default is 1e-5f.  Making this smaller sometimes prevents convergence.
-	 * @param toleranceArray this parameter controls how close to the optimal solution the optimization process must go for each SVM.  Default is 1e-3f.
-	 * @param transposedDataArray the transposed data array
-	 * @param subsetIdx records the subset indexes for training or prediction (used when functionality is 3 or 4)
-	 * @param testDataArray the testing data of all SVMs
-	 * @param testNPointsArray records the number of testing points for each SVM
-	 * @param predictFilename specifies the output file name for prediction
-	 * @param testLabelsArray records the labels of all testing point
-	 * @param ratio the ratio of kernel matrix stored in GPU memory as cache (eg. ratio = 1 means storing the whole kernel matrix in GPU memory, ratio can be any value between 0 and 1, excluding 0; the higher the ratio, the faster the training process and the less number of SVMs can be trained concurrently)
-	 */
-	void svmSubsetPredict(int numSVM, int* nPointsArray, int* nDimensionArray, float** labelsArray, Kernel_params** kpArray, float* costArray, SelectionHeuristic* heuristicMethodArray, float* epsilonArray, float* toleranceArray, float** transposedDataArray, int** subsetIdx, float** testDataArray, int* testNPointsArray, float** testLabelsArray, char** predictFilename = NULL, float ratio = 0.5);
-
+    * Feature importance ranking by random split feature into 2 buckets and train to compare cross-validation accuracy
 
 PREREQUISITES
 
     * NVIDIA Graphics card with CUDA support
     * Latest NVIDIA drivers for GPU
-    * CUDA toolkit & GPU Computing SDK 7.5
-
-    Download all in one package from:    
-	https://developer.nvidia.com/cuda-downloads
-
+    * CUDA toolkit & GPU Computing SDK 9.0 or upper
 
 INSTRUCTIONS
+    Follow the previous 'README-ZHULEI', only difference is CUDA Version 9.0
 
-	1. Install the NVIDIA drivers, CUDA toolkit and GPU Computing SDK code samples. You can find them all in one package here: 
-
-	https://developer.nvidia.com/cuda-downloads (Version 7.5)
-
-	You may need some additional packets to be installed in order to complete the installation above. 
-
-	A very helpful and descriptive guide is on the CUDA webpage: 
-
-	http://docs.nvidia.com/cuda/cuda-getting-started-guide-for-linux/index.html
-
-	Make sure you have followed every step that is relevant to your system, like declaring $PATH and $LD_LIBRARY_PATH on your bash configuration file.
-
-	2. Copy this folder anywhere you like.
-
-	3. Use the Makefile found inside this folder.
-
-	4. Find "svmTrain" and "svmClassify" executable inside the "/bin/linux/release/" sub-directory.
-
-
-    USAGES
-	
-	1. Go to the folder and make
-
-		make
-
-	2. Copy the data folder into sub-directory "/bin/linux/release/"
-
-		cp -r ./data/ ./bin/linux/release/
-
-	3. Go to the "/bin/linux/release" sub-directory
-
-		cd ./bin/linux/release
-
-	4. Train a single SVM, (find the model file inside the "/data" sub-directory, e.g. "./data/a1a.mdl")
-
-		./svmTrain ./data/a1a.svm
-	
-	5. Predict using model files, (find the prediction in the output file, e.g. "./data/a1a.dat")
-
-		./svmClassify ./data/a1a.mdl ./data/a1a.t ./data/a1a.dat
+USAGES
+    Follow the previous 'README-ZHULEI'
 
 NEW USAGES
+    The '-x 2' for cross validation has been modified.
+    Now '-x 2' aims to take in a SINGLE dataset, and output the IMPORTANCE RANKING of features
+    The FIRSTSEED in framework.h specify the random seed for the split process
+    It will be used to generate some SECONDSEEDs for individual random permutation
 
-	Explanation:
+PROCESS
+    The data set will first be first 5-folder(by default) split to training and test set for cross-validation
+    Then each folder will be further randomly split to 'num of dimension * 2' smaller SVMs
+    The importance of a feature is computed by 'impt = sum(accuracy of SVMs the features is in) / sum(accuracy of SVMs the features is out)'
+    Refer to Yixuan's FYP paper, algorithm 2, for more detailed information
 
-		In order to apply the new usages, you will need to specify the "-x" option from the command line:
+KNOWN ISSUES
+    * In some cases, the memory deallocation after the program ends will fail (No influence on the results, OS will do housekeeping)
+    * In some rare cases, the CUDA driver cannot fetch the device information (No influence on the results, just try one more time)
+    * In the first run after compiling, there might be Segmentation fault (core dumped) (No influence on the results, just try one more time)
 
-			"-x 0" : train SVMs from file
-			"-x 1" : train and predict SVMs from file
-			"-x 2" : cross validation from file
-			"-x 3" : train subset SVMs from files (subset file is an integer file contains the indexes of training point)
-			"-x 4" : predict subset SVMs from files
-	
-	1. Train SVMs, (find the model files inside the "/data" sub-directory, e.g. "./data/a1a.mdl", "./data/a2a.mdl")
+FURTHER WORK TO CONSIDER
+    * The current version only supports 2-class training and prediction
+        * Can modify to 1-vs-1 by running multiple times
+        * Can modify to 1-vs-all by pre-processing the input data (modify the labels)
 
-		Command:
+    * The split feature data storage can be reorgnized to reduce memory requirement
+        * Now the small SVMs possess proprietary params and data, it can be modified such that the original data is shared
+        * But please consider the data access time on GPU memory, as the split will result in random scattered access
+        * Scattered memory access performance on GPU global memory is VERY BAD
 
-			svmTrain -x 0 trainingData_1.svm ... trainingData_n.svm
-		
-		Example:
+NOTE
+    * Read the original paper for basic understanding of
+        * the naming of the variables
+        * what the second order phase 1-4 are doing
+        * what parameters and limitations applied
+        * https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-11.pdf
 
-			./svmTrain -x 0 ./data/a1a.svm
-			./svmTrain -x 0 ./data/a1a.svm ./data/a2a.svm
-	
-	2. Train and Predict from files, (find the prediction in the output file, e.g. "./data/a1a.dat", "./data/a2a.dat")
+    * The input data format is different from those provided on LIBSVM website
+        * this code requires 'label feature#:value feature#:value feature#:value feature#:value ...'
+        * feature with value 0 must also be presented
+        * use the python parser named format_convert.py
+        * arguments are name of data files need to convert
+        * example: 'python3 format_convert.py a1a.svm a2a.svm'
 
-		Command:
+    * The real makefile is ./src/common/common.mk
 
-			svmTrain -x 1 trainingData_1.svm ... trainingData_n.svm testingData_1 ... testingData_n
+    * Run the setup_cuda.sh everytime or add it to bashrc to switch the CUDA version to 9.0 on the X99E server
 
-		Example:
-
-			./svmTrain -x 1 ./data/a1a.svm ./data/a1a.t
-			./svmTrain -x 1 ./data/a1a.svm ./data/a2a.svm ./data/a1a.t ./data/a2a.t
-
-	3. Cross validation from files, (default "folder" = 5, use "-b" option to specify the "folder" for cross validation)
-
-		Command:
-
-			svmTrain -x 2 [-b n] trainingData_1.svm ... trainingData_n.svm
-
-		Example:
-
-			./svmTrain -x 2 ./data/a1a.svm
-			./svmTrain -x 2 -b 10 ./data/a1a.svm
-			./svmTrain -x 2 ./data/a1a.svm ./data/a2a.svm
-			./svmTrain -x 2 -b 10 ./data/a1a.svm ./data/a2a.svm
-
-	4. Train subset SVMs, (find the model files inside the "/data" sub-directory, e.g. "./data/subset_1.mdl", "./data/subset_2.mdl")
-
-		Command:
-
-			svmTrain -x 3 trainingData.svm subset_1.svm ... subset_n.svm
-
-		Example:
-
-			./svmTrain -x 3 ./data/splice.svm ./data/subset_1.svm
-			./svmTrain -x 3 ./data/splice.svm ./data/subset_2.svm
-
-	5. Predict subset SVMs, (find the prediction in the output file, e.g. "./data/subset_1.dat", "./data/subset_2.dat")
-
-		Command:
-
-			svmTrain -x 4 trainingData.svm subset_1.svm ... subset_n.svm testingData_1 ... testingData_n
-
-		Example:
-
-			./svmTrain -x 4 ./data/splice.svm ./data/subset_1.svm ./data/splice.t
-			./svmTrain -x 4 ./data/splice.svm ./data/subset_1.svm ./data/subset_2.svm ./data/splice.t ./data/splice.t
-  
-
-
-Reference
-======================
-
-
-	Catanzaro, B., Sundaram, N., & Keutzer, K. (2008). Fast support vector machine training and classification on graphics processors. Proceedings of the 25th International Conference on Machine Learning - ICML '08. doi:10.1145/1390156.1390170
+    * 'make dbg=1' will compile a debug version

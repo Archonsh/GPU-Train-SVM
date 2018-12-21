@@ -6,7 +6,7 @@
  *  Email: zlheui2@gmail.com
  *
  *  Augmented power: can train, predict and cross-validation multiple SVMs concurrently using multiple GPUs
- *  Please view the README file for more details
+ *  Please view the README-ZHULEI file for more details
  *
  *  Reference: 
  *    Catanzaro, B., Sundaram, N., & Keutzer, K. (2008). Fast support vector machine training and classification on graphics processors. Proceedings of the 25th International Conference on Machine Learning - ICML '08. doi:10.1145/1390156.1390170

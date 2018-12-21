@@ -63,7 +63,7 @@ CWARN_FLAGS := $(CXXWARN_FLAGS) \
 	-Wmain \
 
 # Compiler-specific flags
-#NVCCFLAGS := -v
+# NVCCFLAGS := -v
 NVCCFLAGS := -v -std=c++11
 CXXFLAGS  := $(CXXWARN_FLAGS) -std=c++11
 CFLAGS    := $(CWARN_FLAGS)
