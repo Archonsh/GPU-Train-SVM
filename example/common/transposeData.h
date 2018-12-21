@@ -1,0 +1,1 @@
+void transposeData(int nRows, int nCols, float* data, float* transposedData);

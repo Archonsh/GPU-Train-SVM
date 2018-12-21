@@ -1,0 +1,18 @@
+build:
+
+	nvcc --device-c -o "example.o" "example.cu"
+	nvcc -link -o "example" example.o libgpusvm.a -lcublas -lblas -lcuda
+
+	nvcc --device-c -o "example2.o" "example2.cu"
+	nvcc -link -o "example2" example2.o libgpusvm.a -lcublas -lblas -lcuda
+
+	nvcc --device-c -o "grid.o" "grid.cu"
+	nvcc --device-c -o "main.o" "main.cpp"
+	nvcc -link -o "Main" main.o grid.o libgpusvm.a -lcublas -lblas -lcuda
+
+
+clean:
+	rm -rf *.o
+	rm -rf example
+	rm -rf example2
+	rm -rf Main

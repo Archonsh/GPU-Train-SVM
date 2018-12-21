@@ -1,0 +1,26 @@
+Instructions for running the example:
+
+1. Set get_gpusvm_lib.sh executable
+	
+	chmod +x get_gpusvm_lib.sh
+
+2. Get GPU-SVM library 
+
+	./get_gpusvm_lib.svm
+
+   (Notice: Check libgpusvm.a is in the folder)
+
+3. Use make utility to build example, example2, Main
+	
+	mv ./makefile-old ./makefile
+	make
+	
+3. Use cmake to build example, example2, Main
+	cmake .
+	make
+
+4. Run excutable
+	
+	./example trainfile testfile		# one-against-all multi-classification
+	./example trainfile testfile		# one-against-one multi-classification
+	./Main trainfile					# find best parameter for svm training
